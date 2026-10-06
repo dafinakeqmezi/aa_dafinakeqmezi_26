@@ -2,7 +2,6 @@ import random
 
 
 def count_conflicts(board):
-    """Count attacking queen pairs in an N-Queens board."""
     conflicts = 0
     n = len(board)
 
@@ -21,12 +20,6 @@ def count_conflicts(board):
 
 
 def hill_climbing_n_queens(n, max_steps=1000):
-    """
-    Hill climbing for N-Queens.
-
-    board[col] = row means there is one queen in column col and row row.
-    The goal is to reach 0 conflicts.
-    """
     board = [random.randint(0, n - 1) for _ in range(n)]
 
     for step in range(max_steps):
@@ -73,15 +66,6 @@ def print_n_queens_board(board):
 
 
 def simplex(c, a, b):
-    """
-    Simplex method for maximization problems in standard form:
-
-        maximize:     c[0]x1 + c[1]x2 + ...
-        subject to:   a[i][0]x1 + a[i][1]x2 + ... <= b[i]
-                      x1, x2, ... >= 0
-
-    This is a small educational implementation.
-    """
     number_of_constraints = len(a)
     number_of_variables = len(c)
 
