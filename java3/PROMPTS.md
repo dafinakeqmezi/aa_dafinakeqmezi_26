@@ -1,6 +1,6 @@
 # Week 3: Prompts Used
 
-These are the prompts used \for the Week 3 task, cleaned up
+These are the prompts used for the Week 3 task, cleaned up
 and translated from Albanian to English.
 
 ## Task: Organizational Hierarchy Analysis
@@ -14,40 +14,246 @@ There are 5 problems, and every one must be solved with recursion.
 
 ### Prompt 1: Solve the assignment
 
-```text
-I am attaching Organizational_Hierarchy_Assignment.pdf. Read the whole PDF
-before writing any code, then solve all 5 problems in Python.
+````text
+I have uploaded a PDF called Organizational_Hierarchy_Assignment.pdf.
 
-Rules:
-1. Follow the PDF exactly. Do not change any requirement, example output or
-   return value.
-2. Every problem must use recursion for the walk through the hierarchy.
-   Loops are allowed only for bookkeeping: building an index, iterating over
-   one employee's direct reports, and sorting the final result.
-3. Build the indexes once, in O(n), before the recursion:
-   - id -> employee, for walking up to the CEO (Problems 1, 3, 4)
-   - supervisor_id -> direct reports, for walking down (Problems 2, 5)
-   Never scan the whole employee list at each recursive step.
-4. Keep the PDF's data shapes: the Employee, EmployeeData, Subordinate and
-   CommonManager interfaces become Python TypedDicts with the same keys.
-   Function names use Python style (get_employee_depth instead of
-   getEmployeeDepth); null becomes None.
-5. Handle every invalid input the PDF lists: a missing employee, a
-   supervisor ID that does not exist, and a cycle in the supervisor chain.
-   Detect cycles with a set of visited IDs passed down the recursion.
-6. Problem 4 must reuse the recursive get_path_to_ceo from Problem 3,
-   compute each path only once, check membership with a set, and return
-   None before computing any path if either employee does not exist.
+Read the ENTIRE PDF carefully before solving anything. The PDF describes a
+programming assignment about analyzing an organizational hierarchy
+represented as a tree. Its signatures are written in TypeScript, but solve
+it in PYTHON ONLY.
 
-Deliverable: one runnable file, organizational_hierarchy.py, using only the
-standard library, containing:
-- the types and the dataset from the PDF
-- the two index helpers and all 5 functions, each with a docstring and
-  comments marking the base case and the recursive case
-- tests that print PASS/FAIL for every example in the PDF, plus extra
-  robustness tests (cycle, broken supervisor link, disconnected trees, empty
-  list), clearly labelled as additional
+Your task is to solve ALL 5 problems in the PDF completely and correctly.
+
+## VERY IMPORTANT RULES
+
+1. Follow the PDF exactly. Do not replace its requirements with your own
+   approach.
+2. Every problem MUST use recursion for the actual hierarchy traversal.
+3. Iterative loops are allowed ONLY for bookkeeping explicitly permitted by
+   the PDF:
+   - building a dict/index,
+   - iterating over a node's children,
+   - sorting the final result.
+4. Do NOT scan the entire employees list at every recursive step when the
+   PDF requires an index.
+5. Translate the PDF's signatures to Python: snake_case function names, the
+   same parameters, type hints, None instead of null, dict instead of Map,
+   set instead of Set.
+6. Turn the Employee, EmployeeData, Subordinate and CommonManager interfaces
+   into TypedDicts with exactly the same keys.
+7. Handle all invalid inputs required by the assignment.
+8. Detect cycles wherever required.
+9. Explain the recursive logic clearly enough that I can present it to my
+   professor.
+10. Do not skip any requirement, edge case or complexity requirement from
+    the PDF.
+11. Use only the Python standard library.
+
+---
+
+# DATASET
+
+Use the exact employee dataset from the PDF (12 employees, from Alice
+Johnson, CEO, id 1, to Liam Garcia, Intern Developer, id 12), with the
+supervisor relationships and salaries exactly as provided.
+
+---
+
+# PROBLEM 1 - Calculate Employee Depth
+
+```python
+def get_employee_depth(employees: List[Employee], employee_id: int) -> int
 ```
+
+Requirements:
+- The CEO has depth 0, direct reports have depth 1, and so on upward:
+  depth(e) = 1 + depth(supervisor).
+- Return -1 if the employee does not exist, a supervisor does not exist, or
+  the supervisor chain contains a cycle.
+- Build an id -> employee dict ONCE, in O(n).
+- The recursive walk must be O(h), where h is the hierarchy height.
+- Use a set of visited IDs for cycle detection.
+
+Required examples:
+```python
+get_employee_depth(employees, 1)    # 0
+get_employee_depth(employees, 2)    # 1
+get_employee_depth(employees, 7)    # 3
+get_employee_depth(employees, 12)   # 4
+get_employee_depth(employees, 999)  # -1
+```
+
+Explain the base case, the recursive case, cycle detection, and why the
+complexity is O(n + h) rather than O(n * h).
+
+---
+
+# PROBLEM 2 - Get All Subordinates
+
+```python
+class Subordinate(TypedDict):
+    id: int
+    name: str
+    relative_depth: int
+
+def get_all_subordinates(employees: List[Employee], manager_id: int) -> List[Subordinate]
+```
+
+Requirements:
+- Return ALL direct and indirect subordinates, NOT including the manager.
+- Direct reports have relative_depth 1, their reports 2, and so on.
+- Build a supervisor_id -> children index ONCE.
+- Recursively traverse the subtree; visit each employee at most once.
+- Return [] if the manager does not exist or has no subordinates.
+- Sort by relative_depth ascending, then id ascending.
+
+Required examples:
+```python
+get_all_subordinates(employees, 2)
+# [{"id": 4, "name": "David Brown", "relative_depth": 1},
+#  {"id": 5, "name": "Eve Davis", "relative_depth": 1},
+#  {"id": 7, "name": "Grace Lee", "relative_depth": 2},
+#  {"id": 8, "name": "Henry Martinez", "relative_depth": 2},
+#  {"id": 9, "name": "Ivy Chen", "relative_depth": 2},
+#  {"id": 10, "name": "Jack Thompson", "relative_depth": 2},
+#  {"id": 12, "name": "Liam Garcia", "relative_depth": 3}]
+get_all_subordinates(employees, 6)    # [{"id": 11, "name": "Kelly Anderson", "relative_depth": 1}]
+get_all_subordinates(employees, 12)   # []
+get_all_subordinates(employees, 999)  # []
+```
+
+Explain the recursive traversal and its complexity.
+
+---
+
+# PROBLEM 3 - Find Path to CEO
+
+```python
+def get_path_to_ceo(employees: List[Employee], employee_id: int) -> List[int]
+```
+
+Requirements:
+- Return the employee IDs from the starting employee UP to the CEO,
+  using recursion: path(e) = [e.id, *path(supervisor)].
+- The CEO's path is [CEO_ID].
+- Return [] if the employee doesn't exist, a supervisor doesn't exist, or
+  the chain is cyclic. Detect cycles using a set.
+
+Required examples:
+```python
+get_path_to_ceo(employees, 12)   # [12, 7, 4, 2, 1]
+get_path_to_ceo(employees, 1)    # [1]
+get_path_to_ceo(employees, 5)    # [5, 2, 1]
+get_path_to_ceo(employees, 999)  # []
+```
+
+Explain the recursive relationship, the base case and cycle detection.
+
+---
+
+# PROBLEM 4 - Lowest Common Manager
+
+```python
+class CommonManager(TypedDict):
+    manager_id: int
+    manager_name: str
+    distance_to_emp1: int
+    distance_to_emp2: int
+
+def find_lowest_common_manager(
+    employees: List[Employee], emp_id1: int, emp_id2: int
+) -> Optional[CommonManager]
+```
+
+IMPORTANT: the PDF requires reusing the recursive get_path_to_ceo from
+Problem 3.
+
+Requirements:
+1. Validate both employees first; return None before computing any path if
+   either does not exist.
+2. Compute each path ONLY ONCE.
+3. Use a set for membership checking instead of rescanning the second path.
+4. Find the LOWEST common manager; the distances are its positions in each
+   employee's path.
+5. An employee counts as their own ancestor; handle emp_id1 == emp_id2.
+6. Return None if the paths are broken, cyclic or in disconnected trees.
+
+Required examples:
+```python
+find_lowest_common_manager(employees, 12, 9)
+# {"manager_id": 2, "manager_name": "Bob Smith", "distance_to_emp1": 3, "distance_to_emp2": 2}
+find_lowest_common_manager(employees, 8, 10)
+# {"manager_id": 4, "manager_name": "David Brown", "distance_to_emp1": 1, "distance_to_emp2": 1}
+find_lowest_common_manager(employees, 1, 12)
+# {"manager_id": 1, "manager_name": "Alice Johnson", "distance_to_emp1": 0, "distance_to_emp2": 4}
+find_lowest_common_manager(employees, 7, 7)
+# {"manager_id": 7, "manager_name": "Grace Lee", "distance_to_emp1": 0, "distance_to_emp2": 0}
+find_lowest_common_manager(employees, 999, 1)
+# None
+```
+
+Explain carefully why the first common ID found in the first employee's path
+is the LOWEST common manager.
+
+---
+
+# PROBLEM 5 - Total Team Salary
+
+```python
+def calculate_team_salary(employees: List[Employee], manager_id: int) -> int
+```
+
+Requirements:
+- Use recursion: team_salary(e) = e.salary + sum(team_salary(c)) over every
+  direct report c.
+- Include the manager's own salary and every direct and indirect
+  subordinate.
+- Return 0 if the manager doesn't exist.
+
+Required examples:
+```python
+calculate_team_salary(employees, 1)    # 1490000
+calculate_team_salary(employees, 4)    # 505000
+calculate_team_salary(employees, 7)    # 170000
+calculate_team_salary(employees, 12)   # 50000
+calculate_team_salary(employees, 999)  # 0
+```
+
+Explain the base case for a leaf employee and the recursive case for
+managers.
+
+---
+
+# FINAL DELIVERABLE
+
+1. Complete Python solution: ONE runnable file, organizational_hierarchy.py,
+   with the TypedDicts, the dataset, the helper functions, all 5 functions
+   and test cases that print PASS/FAIL. Run with:
+   python organizational_hierarchy.py
+   No placeholders; everything must be implemented.
+2. Problem-by-problem explanation: what the problem asks, the data
+   structure used, base case, recursive case, cycle detection, time and
+   space complexity, with small examples from the dataset.
+3. Complexity table (n = number of employees, h = hierarchy height,
+   k = employees in a manager's subtree), separating the index-building
+   cost from the recursive traversal cost.
+4. Test output for all the PDF examples.
+5. Edge cases: CEO, leaf employee, middle manager, non-existent employee,
+   employee with no subordinates, employee as their own common manager,
+   one employee being the ancestor of another, broken supervisor reference,
+   cyclic supervisor reference, disconnected hierarchy, empty employee
+   list. Label anything the PDF does not require as an additional
+   robustness test.
+6. Recursion concepts in beginner-friendly terms: the recursive call and
+   base case in each problem, what the call stack stores, why the recursion
+   depth depends on h, why building an index before recursing improves
+   complexity, and the difference between time complexity and call-stack
+   space.
+
+Do NOT introduce advanced algorithms that are not needed. The answer must
+be complete enough that I can submit the code and explain it orally to my
+professor.
+````
 
 ### Prompt 2: Check against the PDF
 
