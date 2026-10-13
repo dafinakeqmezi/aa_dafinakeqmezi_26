@@ -1,4 +1,3 @@
-# Week 3 - c3: the same as c2 except the placing loop runs from left to right
 
 six = [
     {"name": "Arta", "grade": 9},
@@ -14,21 +13,19 @@ def g(r):
     return r["grade"]
 
 
-# No two keys are ever compared. After the sums, d[j] is one past the last
-# place where key lo + j may go.
 def c3(a, key, lo, hi, trace=False):
     d = [0] * (hi - lo + 1)
-    for i in range(len(a)):  # count
+    for i in range(len(a)):  
         d[key(a[i]) - lo] += 1
     if trace:
         print("D after count:", d)
-    for j in range(1, len(d)):  # sums
+    for j in range(1, len(d)):  
         d[j] += d[j - 1]
     if trace:
         print("D after sums: ", d)
         print()
     s = [None] * len(a)
-    for i in range(len(a)):  # place (left to right)
+    for i in range(len(a)):  
         j = key(a[i]) - lo
         s[d[j] - 1] = a[i]
         if trace:

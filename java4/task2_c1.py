@@ -1,4 +1,3 @@
-# Week 3 - c1: comparison counting sort, as on the lecture slide
 
 six = [
     {"name": "Arta", "grade": 9},
@@ -14,8 +13,6 @@ def g(r):
     return r["grade"]
 
 
-# count[i] ends up as the number of elements that go before a[i], so it is
-# also the position where a[i] is written. Each record is moved exactly once.
 def c1(a, key):
     n = len(a)
     count = [0] * n

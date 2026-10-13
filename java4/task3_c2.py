@@ -14,8 +14,6 @@ def g(r):
     return r["grade"]
 
 
-# No two keys are ever compared. After the sums, d[j] is one past the last
-# place where key lo + j may go.
 def c2(a, key, lo, hi, trace=False):
     d = [0] * (hi - lo + 1)
     for i in range(len(a)):  # count

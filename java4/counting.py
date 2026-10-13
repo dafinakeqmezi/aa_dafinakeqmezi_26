@@ -1,4 +1,4 @@
-# Week 3 - Task 1: Trace (counting sort on records)
+# Week 3 - Counting sorts (Task 1: Trace, Task 2: Write)
 
 six = [
     {"name": "Arta", "grade": 9},
@@ -14,9 +14,36 @@ def g(r):
     return r["grade"]
 
 
-# c1: comparison counting sort, as on the lecture slide. count[i] ends up
-# as the number of elements that go before a[i], so it is also the position
-# where a[i] is written. Each record is moved exactly once.
+recs = [
+    {"id": 0, "date": "2024-10-13"}, {"id": 1, "date": "2024-01-20"}, {"id": 2, "date": "2026-05-15"},
+    {"id": 3, "date": "2024-01-15"}, {"id": 4, "date": "2024-05-02"}, {"id": 5, "date": "2026-08-27"},
+    {"id": 6, "date": "2025-02-19"}, {"id": 7, "date": "2026-11-22"}, {"id": 8, "date": "2024-09-10"},
+    {"id": 9, "date": "2026-12-11"},
+]
+
+
+# ---------------------------------------------------------------------------
+# Counters
+# ---------------------------------------------------------------------------
+
+comparisons = 0  # +1 every time two keys are compared
+passes = 0  # +1 for every counting pass (count -> running sums -> place)
+
+
+def resetCounters():
+    global comparisons, passes
+    comparisons = 0
+    passes = 0
+
+
+def getCounters():
+    return {"comparisons": comparisons, "passes": passes}
+
+
+# ---------------------------------------------------------------------------
+# Task 1: c1, c2, c3 exactly as on the slides
+# ---------------------------------------------------------------------------
+
 def c1(a, key):
     n = len(a)
     count = [0] * n
@@ -31,60 +58,143 @@ def c1(a, key):
         s[count[i]] = a[i]
     return s
 
-
-# c2: distribution counting sort, as on the lecture slide. No two keys are
-# ever compared. After the sums, d[j] is one past the last place where key
-# lo + j may go.
 def c2(a, key, lo, hi):
     d = [0] * (hi - lo + 1)
-    for i in range(len(a)):  # count
+    for i in range(len(a)):  
         d[key(a[i]) - lo] += 1
-    for j in range(1, len(d)):  # sums
+    for j in range(1, len(d)):  
         d[j] += d[j - 1]
     s = [None] * len(a)
-    for i in range(len(a) - 1, -1, -1):  # place
+    for i in range(len(a) - 1, -1, -1):  
         j = key(a[i]) - lo
         s[d[j] - 1] = a[i]
         d[j] -= 1
     return s
 
 
-# c3: the same as c2 except the placing loop runs from left to right.
 def c3(a, key, lo, hi):
     d = [0] * (hi - lo + 1)
-    for i in range(len(a)):  # count
+    for i in range(len(a)): 
         d[key(a[i]) - lo] += 1
-    for j in range(1, len(d)):  # sums
+    for j in range(1, len(d)): 
         d[j] += d[j - 1]
     s = [None] * len(a)
-    for i in range(len(a)):  # place (left to right)
+    for i in range(len(a)):  
         j = key(a[i]) - lo
         s[d[j] - 1] = a[i]
         d[j] -= 1
     return s
 
 
-# Predicted before seeing the code of c1, c2 and c3: only the names and
-# grades were known, so the grades are sorted 5, 6, 6, 9, 9, 9 and the order
-# of equal grades was guessed.
-predicted = {
-    "c1(six, g)": "Gent Blend Fjolla Arta Dita Edon",
-    "c2(six, g, 5, 10)": "Gent Fjolla Blend Edon Dita Arta",
-    "c3(six, g, 5, 10)": "Gent Blend Fjolla Arta Dita Edon",
-}
+# ---------------------------------------------------------------------------
+# Task 2: counted, stable versions
+# ---------------------------------------------------------------------------
+
+def comparisonCountingSort(a, key):
+    global comparisons
+    n = len(a)
+    count = [0] * n
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            comparisons += 1
+            if key(a[i]) <= key(a[j]):
+                count[j] += 1
+            else:
+                count[i] += 1
+    s = [None] * n
+    for i in range(n):
+        s[count[i]] = a[i]
+    return s
+
+def distributionCountingSort(a, key, lo, hi):
+    global passes
+    passes += 1  
+    d = [0] * (hi - lo + 1)
+    for i in range(len(a)): 
+        d[key(a[i]) - lo] += 1
+    for j in range(1, len(d)):  
+        d[j] += d[j - 1]
+    s = [None] * len(a)
+    for i in range(len(a) - 1, -1, -1):  
+        j = key(a[i]) - lo
+        s[d[j] - 1] = a[i]
+        d[j] -= 1
+    return s
 
 
-def names(rs):
-    return " ".join(r["name"] for r in rs)
+def year(r):
+    return int(r["date"][0:4])
 
 
-if __name__ == "__main__":
-    real = {
-        "c1(six, g)": names(c1(six, g)),
-        "c2(six, g, 5, 10)": names(c2(six, g, 5, 10)),
-        "c3(six, g, 5, 10)": names(c3(six, g, 5, 10)),
-    }
-    print(f"{'call':<20}{'predicted order':<36}{'real order':<36}match")
-    for call in predicted:
-        ok = "yes" if predicted[call] == real[call] else "NO"
-        print(f"{call:<20}{predicted[call]:<36}{real[call]:<36}{ok}")
+def month(r):
+    return int(r["date"][5:7])
+
+
+def day(r):
+    return int(r["date"][8:10])
+
+
+def sortByDate(records):
+    lo = hi = year(records[0]) if records else 0  
+    for r in records:
+        if year(r) < lo:
+            lo = year(r)
+        if year(r) > hi:
+            hi = year(r)
+    s = distributionCountingSort(records, day, 1, 31)  
+    s = distributionCountingSort(s, month, 1, 12)  
+    return distributionCountingSort(s, year, lo, hi)  
+
+
+# The Albanian alphabet, 1..36.
+ALPHABET = [
+    "a", "b", "c", "ç", "d", "dh", "e", "ë", "f", "g", "gj", "h",
+    "i", "j", "k", "l", "ll", "m", "n", "nj", "o", "p", "q", "r",
+    "rr", "s", "sh", "t", "th", "u", "v", "x", "xh", "y", "z", "zh",
+]
+NUMBER = {letter: i + 1 for i, letter in enumerate(ALPHABET)}  # a = 1 ... zh = 36
+DOUBLE = {"dh", "gj", "ll", "nj", "rr", "sh", "th", "xh", "zh"}
+
+words = [
+    "shi", "çaj", "llamba", "zemër", "dhe", "gur", "nënë", "tokë", "xhami", "emër",
+    "rrugë", "cep", "ëndërr", "drita", "thikë", "lule", "njeri", "gjak", "zhurmë",
+    "rosa", "dera", "sot", "xixa", "dhelpër",
+]
+
+
+# Reads the word left to right. If the next two characters are one of
+# dh gj ll nj rr sh th xh zh, they are one letter. Returns the letter numbers.
+def tokenize(word):
+    letters = []
+    i = 0
+    while i < len(word):
+        if word[i:i + 2] in DOUBLE:
+            letters.append(NUMBER[word[i:i + 2]])
+            i += 2
+        else:
+            letters.append(NUMBER[word[i]])
+            i += 1
+    return letters
+
+
+# Dictionary order: one distributionCountingSort per letter position, last
+# position first, range 0..36. A word with no letter at that position gets 0,
+# so a shorter word comes before a longer word that starts the same way.
+def sortAlbanian(words):
+    tokens = [tokenize(w) for w in words]  # 2. tokenize every word
+    longest = 0  # 2. find the longest one
+    for t in tokens:
+        if len(t) > longest:
+            longest = len(t)
+    order = list(range(len(words)))
+    for p in range(longest - 1, -1, -1):  # 3. last position first
+        order = distributionCountingSort(
+            order, lambda i: tokens[i][p] if p < len(tokens[i]) else 0, 0, 36
+        )
+    return [words[i] for i in order]
+
+
+__all__ = [
+    "c1", "c2", "c3", "comparisonCountingSort", "distributionCountingSort",
+    "sortByDate", "tokenize", "sortAlbanian", "resetCounters", "getCounters",
+]
