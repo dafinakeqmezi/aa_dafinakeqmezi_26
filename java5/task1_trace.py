@@ -1,9 +1,5 @@
-# Week 4 - Task 1: Trace (predicted vs real result of each call)
-
 from search import T, P, bruteForce, shiftTable, horspool, horspool2
 
-# Predicted on paper like a student seeing the code for the first time,
-# before running anything.
 predicted = {
     "shiftTable(P)": "{'B': 5, 'A': 4, 'R': 3, 'E': 1}, others 6",
     "bruteForce(T, P)": "16",
