@@ -1,6 +1,6 @@
 I have an assignment from Advanced Algorithms (Week 6): "Supply Chain Inventory Deduplication". Implement it in Python, using only the standard library. Please do the following:
 
-1. Create a file dedup.py. A product has the fields product_id, brand, model, description and supplier_id. Put the assignment's example data in the file (inventory PROD001–PROD003, new products NEW001–NEW005). Also add loadCsv(path) so the program can run as python dedup.py inventory.csv new.csv.
+1. Create a file dedup.py. A product has the fields product_id, brand, model, description and supplier_id. Put the assignment's example data in the file (inventory PROD001–PROD003, new products NEW001–NEW005). Also add loadCsv(path) so the program can run as python dedup.py inventory.csv new.csv, and create inventory.csv and new.csv with the example data.
 
 2. Normalize every product into a composite key (brand, model, sizes, colors):
    - normBrand(brand): lower case, remove punctuation and extra spaces, drop company words (inc, ltd, co, corp, electronics, ...), map aliases (hewlett packard -> hp).
@@ -14,7 +14,7 @@ I have an assignment from Advanced Algorithms (Week 6): "Supply Chain Inventory 
    - byBrandModel: (brand, model) -> keys, for MEDIUM candidates.
    - byFuzzy: (brand, sizes, colors, model with one character deleted) -> keys, for LOW candidates (one-letter typos).
 
-4. Confidence levels:
+4. Confidence levels. Define each rule and justify it:
    - HIGH: brand, model, size and color are identical after normalization. An attribute missing from both listings counts as identical.
    - MEDIUM: brand and model are identical, size or color is given in only one listing, and nothing contradicts.
    - LOW: brand, size and color are identical and the model differs by exactly one letter (a likely typo, e.g. "Galaxy S2l" / "Galaxy S21"). A changed or added digit is never a typo (XM3 vs XM4).
@@ -27,4 +27,6 @@ I have an assignment from Advanced Algorithms (Week 6): "Supply Chain Inventory 
    - checks.py: check that the example output is exactly the assignment's expected output, then check normalization (capitalization, extra spaces, punctuation, abbreviations, units, 5G, "2 in 1") and the grouping rules (3 members in one group, duplicates only in the new batch, size missing in both -> HIGH, size missing in one -> MEDIUM, typo -> LOW, different size / color / brand / XM3 vs XM4 / S21 vs S21+ -> unique, duplicates only inside the inventory are not reported).
    - scale_test.py: 100,000 inventory products plus 20,000 new ones (10,000 rewritten copies with different formatting, 10,000 truly new). Every copy must be in a HIGH group with its own original, every new product must be unique. Print the time.
 
-7. Run python dedup.py, python checks.py and python scale_test.py, show me the full output, tell me if any result differs from the expected one, and briefly explain how normalization, the hash tables and the confidence levels work and why the solution scales to 100,000+ products.
+7. Write a README.md with how to run the program, the normalization rules, the confidence levels with a justification for each rule (why MEDIUM and LOW were chosen and why different sizes or colors are never grouped), the hash tables and the time complexity, and the limitations.
+
+8. Run python dedup.py, python checks.py and python scale_test.py, show me the full output, tell me if any result differs from the expected one, and briefly explain how normalization, the hash tables and the confidence levels work and why the solution scales to 100,000+ products.
