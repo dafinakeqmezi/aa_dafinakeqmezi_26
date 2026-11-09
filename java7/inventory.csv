@@ -1,0 +1,4 @@
+product_id,brand,model,description,supplier_id
+PROD001,Samsung,Galaxy S21,128GB Black,SUP-A
+PROD002,Apple,iPhone 13,256GB Blue,SUP-A
+PROD003,Sony,WH-1000XM4,Noise Cancelling Headphones Black,SUP-B
